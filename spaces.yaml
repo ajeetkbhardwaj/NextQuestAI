@@ -1,0 +1,17 @@
+{
+  "title": "NexusAI - Deep Research",
+  "emoji": "🔮",
+  "colorFrom": "indigo",
+  "colorTo": "violet",
+  "sdk": "gradio",
+  "sdk_version": "5.0.0",
+  "app_file": "app.py",
+  "pinned": false,
+  "models": [],
+  "duplicated_from": null,
+  "license": "mit",
+  "tags": ["ai", "research", "rag", "langgraph", "multi-agent"],
+  "widget": {
+    "parameters": []
+  }
+}
