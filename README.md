@@ -1,3 +1,13 @@
+---
+title: NextQuest.ai
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+app_file: app.py
+pinned: false
+---
+
 # 🚀 NextQuestAI: Deep Research Multi-Agent Framework
 
 NextQuestAI is a high-performance, multi-agent research orchestrator powered by **LangGraph** and **NVIDIA NIM**. It transforms simple queries into comprehensive, verified research reports by coordinating specialized agents for planning, searching, scraping, and fact-verification.
