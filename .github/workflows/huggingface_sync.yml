@@ -17,4 +17,12 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://ajeet9843:$HF_TOKEN@huggingface.co/spaces/ajeet9843/NextQuest.ai main
+        run: |
+          # Ensure no database files are present in the push
+          rm -f nexusai_history.db
+          git config --global user.email "ajeet9843@users.noreply.github.com"
+          git config --global user.name "ajeet9843"
+          git add .
+          # Only commit if there are changes (like the deletion)
+          git commit -m "Cleanup for Hugging Face" || echo "No changes to cleanup"
+          git push --force https://ajeet9843:$HF_TOKEN@huggingface.co/spaces/ajeet9843/NextQuest.ai main
