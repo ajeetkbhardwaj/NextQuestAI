@@ -18,11 +18,19 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Ensure no database files are present in the push
+          # 1. Remove binary files
           rm -f nexusai_history.db
+          
+          # 2. Strip history to avoid pushing binary commits
+          rm -rf .git
+          
+          # 3. Initialize fresh repo
+          git init
+          git branch -M main
           git config --global user.email "ajeet9843@users.noreply.github.com"
           git config --global user.name "ajeet9843"
+          
+          # 4. Add files and push clean snapshot
           git add .
-          # Only commit if there are changes (like the deletion)
-          git commit -m "Cleanup for Hugging Face" || echo "No changes to cleanup"
+          git commit -m "Deploy to Hugging Face Spaces"
           git push --force https://ajeet9843:$HF_TOKEN@huggingface.co/spaces/ajeet9843/NextQuest.ai main
