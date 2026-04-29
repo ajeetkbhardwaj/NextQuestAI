@@ -56,3 +56,5 @@ Hi.md
 IMPLEMENTATION_REPORT.md
 .nexusai-presentation.md
 spaces.yaml
+nexusai_history.db
+*.db
