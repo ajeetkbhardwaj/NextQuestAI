@@ -1,3 +1,12 @@
+---
+title: NextQuestAI
+emoji: 🔍
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+app_file: src/ui.py
+pinned: false
+---
 # NextQuestAI - Deep Research Assistant
 
 A Perplexity-like AI system with multi-agent orchestration, web search, and LLM reasoning. Built with LangGraph and Gradio.
@@ -33,7 +42,7 @@ ollama serve
 ### 3. Run the Application
 
 ```bash
-python src/ui.py
+python app.py
 ```
 
 Visit `http://localhost:7860`

@@ -48,7 +48,7 @@ class AgentState(TypedDict):
     error: Optional[str]
     status: str
     metadata: dict
-    deep_research: bool = False
+    next_step: Optional[str] = None
     analysis_round: int = 0
     retry_count: int = 0
 

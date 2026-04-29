@@ -1,10 +1,8 @@
 # Core AI & Orchestration
 langgraph>=0.5.0
 langchain-core>=0.3.0
-langchain-openai>=0.2.0
-langchain-anthropic>=0.2.0
-crewai>=0.80.0
-ollama
+openai>=1.50.0
+
 # Web Search & Scraping
 tavily>=0.3.0
 duckduckgo-search>=7.3.0
@@ -16,8 +14,6 @@ httpx>=0.28.0
 ddgs
 
 # UI
-gradio>=5.0.0
-gradio-client>=1.0.0
 streamlit
 
 # Utilities

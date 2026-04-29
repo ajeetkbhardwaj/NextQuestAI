@@ -3,10 +3,6 @@ from typing import Optional, Literal
 from pydantic import BaseModel, Field
 
 
-def get_ollama_base_url() -> str:
-    return os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-
-
 class SearchConfig(BaseModel):
     provider: Literal["tavily", "duckduckgo", "serper"] = "duckduckgo"
     max_results: int = Field(default=5, ge=1, le=20)
@@ -15,11 +11,8 @@ class SearchConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    provider: Literal["openai", "anthropic", "ollama", "gemini", "huggingface", "nvidia", "custom"] = (
-        "ollama"
-    )
-    model: str = "llama3.2"
-    base_url: str = "http://localhost:11434/v1"
+    provider: Literal["gemini", "huggingface", "nvidia", "openrouter"] = "nvidia"
+    model: str = "mistralai/mistral-nemotron"
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4000, ge=1000, le=32000)
     api_key: Optional[str] = None
@@ -59,7 +52,6 @@ class Config(BaseModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.llm.base_url = get_ollama_base_url()
         self.llm.model = os.getenv("LLM_MODEL", self.llm.model)
         self.llm.provider = os.getenv("LLM_PROVIDER", self.llm.provider)
         self.search.provider = os.getenv("SEARCH_PROVIDER", self.search.provider)

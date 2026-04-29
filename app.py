@@ -8,51 +8,35 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from src.workflow import research_graph
+from src.database import save_research, get_all_research
 
 
 LLM_PROVIDERS = {
-    "ollama": {
-        "name": "Ollama (Local)",
-        "needs_api_key": False,
-        "base_url_default": "http://localhost:11434/v1",
-        "models": [
-            "gemma4:e2b",
-            "llama3.2",
-            "llama3.2:1b",
-            "llama3.2:3b",
-            "llama3.1",
-            "mistral",
-            "phi3",
-            "qwen2.5",
-            "codellama",
-        ],
-        "default_model": "gemma4:e2b",
-    },
-    "openai": {
-        "name": "OpenAI",
+    "nvidia": {
+        "name": "Nvidia NIM",
         "needs_api_key": True,
-        "base_url_default": None,
+        "base_url_default": "https://integrate.api.nvidia.com/v1",
         "models": [
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-4-turbo",
-            "gpt-4",
-            "gpt-3.5-turbo",
+            "mistralai/mistral-nemotron",
+            "meta/llama-4-maverick-17b-128e-instruct",
+            "google/gemma-3-27b-it",
+            "nvidia/nemotron-3-super-120b-a12b",
+            "google/gemma-3n-e4b-it",
+            "deepseek-ai/deepseek-v4-flash",
         ],
-        "default_model": "gpt-4o",
+        "default_model": "mistralai/mistral-nemotron",
     },
-    "anthropic": {
-        "name": "Anthropic",
+    "openrouter": {
+        "name": "OpenRouter",
         "needs_api_key": True,
-        "base_url_default": None,
+        "base_url_default": "https://openrouter.ai/api/v1",
         "models": [
-            "claude-sonnet-4-20250514",
-            "claude-3-5-sonnet-20241022",
-            "claude-3-5-sonnet-20240620",
-            "claude-3-opus-20240229",
-            "claude-3-haiku-20240307",
+            "google/gemini-2.0-flash-001",
+            "anthropic/claude-3.5-sonnet",
+            "deepseek/deepseek-r1",
+            "meta-llama/llama-3.3-70b-instruct",
         ],
-        "default_model": "claude-3-5-sonnet-20241022",
+        "default_model": "google/gemini-2.0-flash-001",
     },
     "gemini": {
         "name": "Google Gemini",
@@ -60,10 +44,8 @@ LLM_PROVIDERS = {
         "base_url_default": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "models": [
             "gemini-2.0-flash",
-            "gemini-2.0-flash-exp",
             "gemini-1.5-pro",
             "gemini-1.5-flash",
-            "gemini-1.5-flash-8b",
         ],
         "default_model": "gemini-2.0-flash",
     },
@@ -73,25 +55,10 @@ LLM_PROVIDERS = {
         "base_url_default": "https://api-inference.huggingface.co/v1/",
         "models": [
             "meta-llama/Llama-3.2-3B-Instruct",
-            "meta-llama/Llama-3.2-1B-Instruct",
             "meta-llama/Llama-3.1-8B-Instruct",
-            "microsoft/Phi-3-mini-128k-instruct",
             "Qwen/Qwen2-7B-Instruct",
-            "mistralai/Mistral-7B-Instruct-v0.2",
         ],
         "default_model": "meta-llama/Llama-3.2-3B-Instruct",
-    },
-    "nvidia": {
-        "name": "Nvidia NIM",
-        "needs_api_key": True,
-        "base_url_default": None,
-        "models": [
-            "google/gemma-3n-e4b-it",
-            "deepseek-ai/deepseek-v3.2",
-            "meta/llama-3.1-70b-instruct",
-            "nvidia/llama-3.1-nemotron-70b-instruct",
-        ],
-        "default_model": "google/gemma-3n-e4b-it",
     },
 }
 
@@ -179,7 +146,7 @@ def main():
     if "research_trace" not in st.session_state:
         st.session_state.research_trace = []
     if "history" not in st.session_state:
-        st.session_state.history = []
+        st.session_state.history = get_all_research(limit=20)
 
 
     with st.sidebar:
@@ -213,12 +180,6 @@ def main():
         )
 
         base_url = None
-        if selected_provider == "ollama":
-            base_url = st.text_input(
-                "Base URL",
-                value=provider_info["base_url_default"],
-                placeholder="http://localhost:11434/v1",
-            )
 
         st.divider()
 
@@ -288,7 +249,16 @@ def main():
                     "max_tokens": 4000,
                 },
             ):
-                if node_name == "planner" and "refined_query" in node_state:
+                if node_name == "router":
+                    next_step = node_state.get("next_step", "research")
+                    if next_step == "direct":
+                        research_container.markdown("🎯 **Router:** Direct answer possible")
+                        answer_placeholder.markdown("✍️ *Synthesizing direct answer...*")
+                    else:
+                        research_container.markdown("🔍 **Router:** Research required")
+                        answer_placeholder.markdown("📝 *Planning research strategy...*")
+
+                elif node_name == "planner" and "refined_query" in node_state:
                     query = node_state.get("refined_query", "")
                     research_container.markdown(f"📝 **Planning:** {query}")
                     answer_placeholder.markdown("🌍 *Searching the web...*")
@@ -352,11 +322,8 @@ def main():
             st.session_state.messages.append({"role": "assistant", "content": full_answer})
 
             if full_answer:
-                st.session_state.history.insert(0, {
-                    "query": prompt,
-                    "answer": full_answer,
-                    "sources": citations
-                })
+                save_research(prompt, full_answer, citations, reasoning)
+                st.session_state.history = get_all_research(limit=20)
 
 if __name__ == "__main__":
     import sys

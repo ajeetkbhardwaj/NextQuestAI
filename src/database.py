@@ -33,6 +33,7 @@ def init_db():
             query TEXT NOT NULL,
             answer TEXT,
             sources TEXT,
+            trace TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -40,13 +41,14 @@ def init_db():
     conn.close()
 
 
-def save_research(query: str, answer: str, sources: List[dict]) -> int:
+def save_research(query: str, answer: str, sources: List[dict], trace: List[str] = None) -> int:
     conn = get_connection()
     cursor = conn.cursor()
     sources_json = json.dumps(sources)
+    trace_json = json.dumps(trace if trace else [])
     cursor.execute(
-        "INSERT INTO research_history (query, answer, sources) VALUES (?, ?, ?)",
-        (query, answer, sources_json),
+        "INSERT INTO research_history (query, answer, sources, trace) VALUES (?, ?, ?, ?)",
+        (query, answer, sources_json, trace_json),
     )
     conn.commit()
     research_id = cursor.lastrowid
@@ -58,7 +60,7 @@ def get_all_research(limit: int = 50) -> List[dict]:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, query, answer, sources, created_at FROM research_history ORDER BY created_at DESC LIMIT ?",
+        "SELECT id, query, answer, sources, created_at, trace FROM research_history ORDER BY created_at DESC LIMIT ?",
         (limit,),
     )
     rows = cursor.fetchall()
@@ -73,6 +75,7 @@ def get_all_research(limit: int = 50) -> List[dict]:
                 "answer": row[2],
                 "sources": _safe_json_loads(row[3]),
                 "created_at": row[4],
+                "trace": _safe_json_loads(row[5]),
             }
         )
     return results
@@ -82,7 +85,7 @@ def get_research_by_id(research_id: int) -> Optional[dict]:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, query, answer, sources, created_at FROM research_history WHERE id = ?",
+        "SELECT id, query, answer, sources, created_at, trace FROM research_history WHERE id = ?",
         (research_id,),
     )
     row = cursor.fetchone()
@@ -95,6 +98,7 @@ def get_research_by_id(research_id: int) -> Optional[dict]:
             "answer": row[2],
             "sources": _safe_json_loads(row[3]),
             "created_at": row[4],
+            "trace": _safe_json_loads(row[5]),
         }
     return None
 
@@ -113,7 +117,7 @@ def search_history(search_term: str, limit: int = 20) -> List[dict]:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, query, answer, sources, created_at FROM research_history WHERE query LIKE ? ORDER BY created_at DESC LIMIT ?",
+        "SELECT id, query, answer, sources, created_at, trace FROM research_history WHERE query LIKE ? ORDER BY created_at DESC LIMIT ?",
         (f"%{search_term}%", limit),
     )
     rows = cursor.fetchall()
@@ -128,6 +132,7 @@ def search_history(search_term: str, limit: int = 20) -> List[dict]:
                 "answer": row[2],
                 "sources": _safe_json_loads(row[3]),
                 "created_at": row[4],
+                "trace": _safe_json_loads(row[5]),
             }
         )
     return results

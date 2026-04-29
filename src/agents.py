@@ -19,10 +19,9 @@ def get_llm_config_from_state(state: AgentState) -> dict:
     return state.get("metadata", {}).get(
         "llm_config",
         {
-            "provider": "ollama",
-            "model": "gemma4:e2b",
+            "provider": "nvidia",
+            "model": "mistralai/mistral-nemotron",
             "api_key": None,
-            "base_url": "http://localhost:11434/v1",
         },
     )
 
@@ -39,14 +38,10 @@ async def call_llm_with_retry(
 ):
     async def _call():
         llm = llm_factory.create(
-            llm_config.get("provider", "ollama"),
+            llm_config.get("provider", "nvidia"),
             llm_config.get("model"),
             api_key=llm_config.get("api_key"),
-            base_url=(
-                llm_config.get("base_url")
-                if llm_config.get("provider") in ("ollama", "custom", "huggingface")
-                else None
-            ),
+            base_url=llm_config.get("base_url") if llm_config.get("provider") in ("huggingface", "openrouter") else None,
             timeout=120.0,
         )
         return await llm.generate(
@@ -85,6 +80,43 @@ def extract_refined_query(response_content: str, fallback_query: str) -> str:
                 return cleaned
 
     return fallback_query[:500]
+
+
+async def router_node(state: AgentState) -> AgentState:
+    """Decides if the query needs web research or a direct answer."""
+    query = state["original_query"]
+    llm_config = get_llm_config_from_state(state)
+
+    logger.info(f"[ROUTER] Analyzing query: {query[:50]}...")
+
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPTS["router"]},
+        {"role": "user", "content": query},
+    ]
+
+    try:
+        response = await call_llm_with_retry(
+            messages, llm_config, temperature=0.0, max_tokens=10
+        )
+        decision = response.content.strip().upper()
+        
+        # Default to RESEARCH if unclear
+        if "DIRECT" in decision:
+            state["next_step"] = "direct"
+        else:
+            state["next_step"] = "research"
+            
+        state["reasoning_trace"].append(
+            f"[{datetime.now(timezone.utc).isoformat()}] Router: Decision - {state['next_step']}"
+        )
+    except Exception as e:
+        logger.error(f"[ROUTER] Error: {e}")
+        state["next_step"] = "research"
+        state["reasoning_trace"].append(
+            f"[{datetime.now(timezone.utc).isoformat()}] Router: Defaulting to research due to error: {e}"
+        )
+
+    return state
 
 
 async def planner_node(state: AgentState) -> AgentState:
@@ -220,12 +252,7 @@ async def scrape_node(state: AgentState) -> AgentState:
     deep_research = state.get("deep_research", False)
     settings = state.get("metadata", {}).get("agent_settings", get_agent_settings(deep_research))
 
-    llm_config = get_llm_config_from_state(state)
-    is_local = llm_config.get("provider") == "ollama"
-
     max_sources = settings.get("max_sources", 5)
-    if is_local and not deep_research:
-        max_sources = min(max_sources, 3)
     max_concurrent = settings.get("analyzer_concurrency", 3)
 
     logger.info(f"[SCRAPE] search_results count: {len(search_results)}")
@@ -294,14 +321,11 @@ async def scrape_node(state: AgentState) -> AgentState:
 
 
 async def analyze_source(
-    source: dict, query: str, llm, semaphore: asyncio.Semaphore, settings: dict, is_local: bool = False
+    source: dict, query: str, llm, semaphore: asyncio.Semaphore, settings: dict
 ) -> List[dict]:
     """Analyze a single source and extract facts."""
     async with semaphore:
         max_content = settings.get("max_content_for_analyzer", 3000)
-        if is_local:
-            max_content = min(max_content, 1500)
-
         content = source.get("content", "")[:max_content]
         if not content:
             logger.warning(f"[ANALYZER] No content for source: {source.get('url', 'unknown')}")
@@ -415,37 +439,29 @@ async def analyzer_node(state: AgentState) -> AgentState:
         return state
 
     state["analysis_round"] = analysis_round + 1
-
     llm_config = get_llm_config_from_state(state)
-    is_local = llm_config.get("provider") == "ollama"
 
     max_sources_to_analyze = settings.get("max_sources_to_analyze", 5)
-    if is_local and not deep_research:
-        max_sources_to_analyze = min(max_sources_to_analyze, 3)
     sources_to_analyze = scraped[:max_sources_to_analyze]
 
     state["reasoning_trace"].append(
         f"[{datetime.now(timezone.utc).isoformat()}] Analyzer: Round {state['analysis_round']}, analyzing {len(sources_to_analyze)} sources"
     )
 
-    model = llm_config.get("model") or "gemma4:e2b"
+    model = llm_config.get("model") or "deepseek-ai/deepseek-r1"
     logger.info(f"[ANALYZER] Using model: {model}, round={state['analysis_round']}")
 
     llm = llm_factory.create(
-        llm_config.get("provider", "ollama"),
+        llm_config.get("provider", "nvidia"),
         model,
         api_key=llm_config.get("api_key"),
-        base_url=llm_config.get("base_url")
-        if llm_config.get("provider") in ("ollama", "custom", "huggingface")
-        else None,
+        base_url=llm_config.get("base_url") if llm_config.get("provider") in ("huggingface", "openrouter") else None,
         timeout=120.0,
     )
 
     concurrency = settings.get("analyzer_concurrency", 3)
-    if llm_config.get("provider") == "ollama":
-        concurrency = 1  # Prevent local LLMs from thrashing by processing sequentially
     semaphore = asyncio.Semaphore(concurrency)
-    tasks = [analyze_source(source, query, llm, semaphore, settings, is_local) for source in sources_to_analyze]
+    tasks = [analyze_source(source, query, llm, semaphore, settings) for source in sources_to_analyze]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     facts = []
@@ -465,7 +481,6 @@ async def analyzer_node(state: AgentState) -> AgentState:
     )
 
     min_facts_threshold = settings.get("min_facts_threshold", 3)
-    max_analysis_rounds = settings.get("max_analysis_rounds", 1)
     retry_count = state.get("retry_count", 0)
 
     if len(facts) < min_facts_threshold and retry_count == 0 and analysis_round == 0:
@@ -476,6 +491,61 @@ async def analyzer_node(state: AgentState) -> AgentState:
         state["scraped_content"] = []
         state["search_results"] = []
 
+    return state
+
+
+async def ranker_node(state: AgentState) -> AgentState:
+    """Ranks and filters extracted facts based on relevance to the query."""
+    query = state["original_query"]
+    facts = state.get("extracted_facts", [])
+    llm_config = get_llm_config_from_state(state)
+
+    if not facts or len(facts) < 10:
+        return state
+
+    logger.info(f"[RANKER] Ranking {len(facts)} facts...")
+    state["reasoning_trace"].append(
+        f"[{datetime.now(timezone.utc).isoformat()}] Ranker: Filtering {len(facts)} facts for relevance"
+    )
+
+    # Group facts into blocks for ranking to save tokens
+    fact_texts = [f"- {f['fact']}" for f in facts]
+    
+    messages = [
+        {"role": "system", "content": "You are a relevance filter. Given a query and a list of facts, return ONLY the facts that directly answer the query. Remove duplicates and minor details. Output each relevant fact on a new line."},
+        {
+            "role": "user",
+            "content": f"Query: {query}\n\nFacts:\n" + "\n".join(fact_texts[:50]), # Limit to top 50 for safety
+        },
+    ]
+
+    try:
+        response = await call_llm_with_retry(
+            messages, llm_config, temperature=0.1, max_tokens=2000
+        )
+        ranked_lines = response.content.split("\n")
+        
+        # Simple string matching to find original fact objects
+        ranked_facts = []
+        for line in ranked_lines:
+            line = line.strip().lstrip("- ").lower()
+            if not line: continue
+            for f in facts:
+                if line in f['fact'].lower() or f['fact'].lower() in line:
+                    if f not in ranked_facts:
+                        ranked_facts.append(f)
+                    break
+        
+        if ranked_facts:
+            logger.info(f"[RANKER] Kept {len(ranked_facts)} relevant facts")
+            state["extracted_facts"] = ranked_facts
+        
+        state["reasoning_trace"].append(
+            f"[{datetime.now(timezone.utc).isoformat()}] Ranker: Reduced to {len(state['extracted_facts'])} high-relevance facts"
+        )
+    except Exception as e:
+        logger.error(f"[RANKER] Error: {e}")
+        
     return state
 
 
@@ -498,7 +568,7 @@ async def synthesizer_node(state: AgentState) -> AgentState:
         state["status"] = "complete"
         return state
 
-    if not scraped:
+    if not scraped and state.get("next_step") != "direct":
         logger.warning("[SYNTHESIZER] No content to synthesize")
         state["final_answer"] = (
             f"I couldn't find sufficient information to answer your question.\n\n"
@@ -518,11 +588,6 @@ async def synthesizer_node(state: AgentState) -> AgentState:
     max_sources = settings.get("max_sources", 5)
     max_content_for_synth = settings.get("max_content_for_synthesizer", 1500)
 
-    is_local = llm_config.get("provider") == "ollama"
-    if is_local and not deep_research:
-        max_sources = min(max_sources, 3)
-        max_content_for_synth = min(max_content_for_synth, 800)
-
     context_parts = []
     for i, source in enumerate(scraped[:max_sources], 1):
         context_parts.append(
@@ -539,23 +604,27 @@ async def synthesizer_node(state: AgentState) -> AgentState:
             facts_list.append(f"{j}. {fact.get('fact', '')} (Source: {source_title}, Conf: {fact.get('confidence', 0):.1f})")
         facts_context = "\n\nExtracted Facts:\n" + "\n".join(facts_list)
 
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPTS["synthesizer"]},
-        {
-            "role": "user",
-            "content": f"User question: {query}\n\nSources:\n{context}{facts_context}\n\nGenerate a comprehensive answer with proper citations. Use [1], [2], etc. format.",
-        },
-    ]
+    if state.get("next_step") == "direct":
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant. Answer the user's question directly and concisely based on your internal knowledge. Do not use citations since no web research was performed."},
+            {"role": "user", "content": query},
+        ]
+    else:
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPTS["synthesizer"]},
+            {
+                "role": "user",
+                "content": f"User question: {query}\n\nSources:\n{context}{facts_context}\n\nGenerate a comprehensive answer with proper citations. Use [1], [2], etc. format.",
+            },
+        ]
 
     async def _generate_with_retry():
         llm = llm_factory.create(
-            llm_config.get("provider", "ollama"),
+            llm_config.get("provider", "nvidia"),
             llm_config.get("model"),
             api_key=llm_config.get("api_key"),
-            base_url=llm_config.get("base_url")
-            if llm_config.get("provider") in ("ollama", "custom", "huggingface")
-            else None,
-        timeout=120.0,
+            base_url=llm_config.get("base_url") if llm_config.get("provider") in ("huggingface", "openrouter") else None,
+            timeout=120.0,
         )
         if agent_config.get("streaming", True):
             full_response = ""
@@ -600,6 +669,51 @@ async def synthesizer_node(state: AgentState) -> AgentState:
     state["reasoning_trace"].append(
         f"[{datetime.now(timezone.utc).isoformat()}] Synthesizer: Complete with {len(citations)} citations"
     )
-    state["status"] = "complete"
 
+    return state
+async def verifier_node(state: AgentState) -> AgentState:
+    """Verifies the final answer against extracted facts for accuracy."""
+    answer = state.get("final_answer", "")
+    facts = state.get("extracted_facts", [])
+    llm_config = get_llm_config_from_state(state)
+
+    if not answer or not facts:
+        state["status"] = "complete"
+        return state
+
+    logger.info("[VERIFIER] Verifying answer accuracy...")
+    state["reasoning_trace"].append(
+        f"[{datetime.now(timezone.utc).isoformat()}] Verifier: Checking for hallucinations or inaccuracies"
+    )
+
+    fact_texts = [f"- {f['fact']}" for f in facts[:30]]
+    
+    messages = [
+        {"role": "system", "content": "You are a fact-checker. Compare the Answer to the provided Facts. If the Answer contains information NOT in the Facts or contradicts them, rewrite the Answer to be accurate. If the Answer is already accurate, return it exactly as is. Always maintain citations [1], [2], etc."},
+        {
+            "role": "user",
+            "content": f"Facts:\n" + "\n".join(fact_texts) + f"\n\nAnswer:\n{answer}",
+        },
+    ]
+
+    try:
+        response = await call_llm_with_retry(
+            messages, llm_config, temperature=0.1, max_tokens=4000
+        )
+        if response.content and len(response.content) > 100:
+            if response.content.strip() != answer.strip():
+                logger.info("[VERIFIER] Self-correction applied to answer")
+                state["final_answer"] = response.content
+                state["reasoning_trace"].append(
+                    f"[{datetime.now(timezone.utc).isoformat()}] Verifier: Applied self-correction to improve accuracy"
+                )
+            else:
+                logger.info("[VERIFIER] Answer verified as accurate")
+                state["reasoning_trace"].append(
+                    f"[{datetime.now(timezone.utc).isoformat()}] Verifier: Answer verified against source facts"
+                )
+    except Exception as e:
+        logger.error(f"[VERIFIER] Error: {e}")
+        
+    state["status"] = "complete"
     return state

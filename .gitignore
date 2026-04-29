@@ -54,3 +54,5 @@ data/processed/
 .env
 Hi.md 
 IMPLEMENTATION_REPORT.md
+.nexusai-presentation.md
+spaces.yaml
