@@ -165,18 +165,24 @@ def main():
         env_key = os.getenv("NVIDIA_API_KEY") if selected_provider == "nvidia" else None
         
         if provider_info["needs_api_key"]:
+            # If env_key exists, we show a success message but keep the input empty for security
+            if env_key:
+                st.info("💡 **System API Key Active**: You don't need to enter a key unless you want to use your own.")
+            
             api_key = st.text_input(
                 "🔑 API Key",
                 type="password",
-                value=env_key if env_key else "",
-                placeholder=f"Enter your {provider_info['name']} API key",
-                help="Leave empty to use the key from environment variables/secrets."
+                value="", # Always start empty for privacy
+                placeholder="Paste your own API key to override system default" if env_key else f"Enter your {provider_info['name']} API key",
+                help="If you leave this empty, the application will use the pre-configured system key."
             )
             
             if not api_key and not env_key:
                 st.warning(f"⚠️ API key required for {provider_info['name']}")
-            elif not api_key and env_key:
-                api_key = env_key
+            
+            # Final key logic: User input takes priority, fallback to environment key
+            effective_api_key = api_key if api_key else env_key
+            api_key = effective_api_key
 
         dynamic_models = get_dynamic_models(selected_provider, api_key, provider_info.get("base_url_default"))
 

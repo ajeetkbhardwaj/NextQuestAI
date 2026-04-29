@@ -45,6 +45,16 @@ cp .env.example .env
 # Edit .env and add your NVIDIA_API_KEY
 ```
 
+---
+
+## 🔑 API Key Management (BYOK)
+
+NextQuestAI supports **Bring Your Own Key (BYOK)**. 
+- **System Default**: If deployed on Hugging Face, the app uses a pre-configured NVIDIA key for convenience.
+- **Privacy First**: If you enter your own API key in the sidebar, it will override the system default and be used exclusively for your session. Your key is never stored and remains private to your browser session.
+
+---
+
 ### 2. Run the Application
 ```bash
 streamlit run app.py
