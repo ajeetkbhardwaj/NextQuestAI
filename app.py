@@ -162,14 +162,21 @@ def main():
         provider_info = LLM_PROVIDERS[selected_provider]
 
         api_key = ""
+        env_key = os.getenv("NVIDIA_API_KEY") if selected_provider == "nvidia" else None
+        
         if provider_info["needs_api_key"]:
             api_key = st.text_input(
                 "🔑 API Key",
                 type="password",
+                value=env_key if env_key else "",
                 placeholder=f"Enter your {provider_info['name']} API key",
+                help="Leave empty to use the key from environment variables/secrets."
             )
-            if not api_key:
+            
+            if not api_key and not env_key:
                 st.warning(f"⚠️ API key required for {provider_info['name']}")
+            elif not api_key and env_key:
+                api_key = env_key
 
         dynamic_models = get_dynamic_models(selected_provider, api_key, provider_info.get("base_url_default"))
 
