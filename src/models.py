@@ -18,6 +18,7 @@ class ScrapedContent(TypedDict):
     author: Optional[str]
     published_date: Optional[str]
     fetched_at: str
+    chunks: Optional[List[str]]
 
 
 class ExtractedFact(TypedDict):
@@ -38,12 +39,17 @@ class Citation(TypedDict):
 
 class AgentState(TypedDict):
     original_query: str
+    query_intent: Optional[str]
     refined_query: Optional[str]
     search_results: List[SearchResult]
     scraped_content: List[ScrapedContent]
     extracted_facts: List[ExtractedFact]
     final_answer: str
     citations: List[Citation]
+    sub_queries: List[str]
+    hyde_document: Optional[str]
+    critiques: List[str]
+    reflexion_steps: int
     reasoning_trace: List[str]
     error: Optional[str]
     status: str
@@ -60,7 +66,7 @@ AGENT_DEFAULTS = {
         "max_sources_to_analyze": 5,
         "max_content_for_analyzer": 3000,
         "max_content_for_synthesizer": 1500,
-        "analyzer_concurrency": 3,
+        "analyzer_concurrency": 5,
         "min_facts_threshold": 5,
         "max_analysis_rounds": 1,
     },
@@ -70,7 +76,7 @@ AGENT_DEFAULTS = {
         "max_sources_to_analyze": 10,
         "max_content_for_analyzer": 5000,
         "max_content_for_synthesizer": 2000,
-        "analyzer_concurrency": 5,
+        "analyzer_concurrency": 10,
         "min_facts_threshold": 8,
         "max_analysis_rounds": 3,
     },

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def route_query(state: AgentState) -> Literal["planner", "synthesize"]:
     """Routes the query based on the router's decision."""
     next_step = state.get("next_step", "research")
-    if next_step == "direct":
+    if next_step in ("direct", "clarify"):
         logger.info("[WORKFLOW] Routing to direct answer (skipping research)")
         return "synthesize"
     return "planner"
@@ -46,6 +46,13 @@ def should_retry_or_rank(state: AgentState) -> Literal["search", "ranker"]:
     return "ranker"
 
 
+def check_reflexion(state: AgentState) -> Literal["synthesize", END]:
+    """Routes back to synthesizer if verifier produced a critique."""
+    if state.get("status") == "pending_reflexion" and state.get("reflexion_steps", 0) < 3:
+        logger.info(f"[WORKFLOW] Reflexion Loop triggered (Attempt {state.get('reflexion_steps')})")
+        return "synthesize"
+    return END
+
 def create_research_graph() -> StateGraph:
     workflow = StateGraph(AgentState)
 
@@ -70,7 +77,7 @@ def create_research_graph() -> StateGraph:
     workflow.add_conditional_edges("analyzer", should_retry_or_rank)
     workflow.add_edge("ranker", "synthesize")
     workflow.add_edge("synthesize", "verifier")
-    workflow.add_edge("verifier", END)
+    workflow.add_conditional_edges("verifier", check_reflexion)
 
     return workflow.compile()
 

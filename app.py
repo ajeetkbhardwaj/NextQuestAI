@@ -66,12 +66,17 @@ LLM_PROVIDERS = {
 def create_initial_state(query: str, llm_config: dict, agent_config: dict):
     return {
         "original_query": query,
+        "query_intent": None,
         "refined_query": None,
         "search_results": [],
         "scraped_content": [],
         "extracted_facts": [],
         "final_answer": "",
         "citations": [],
+        "sub_queries": [],
+        "hyde_document": None,
+        "critiques": [],
+        "reflexion_steps": 0,
         "reasoning_trace": [],
         "error": None,
         "status": "pending",
@@ -81,35 +86,46 @@ def create_initial_state(query: str, llm_config: dict, agent_config: dict):
         },
     }
 
-
-async def run_research_async(query: str, llm_config: dict, agent_config: dict):
-    state = create_initial_state(query, llm_config, agent_config)
-
-    async for event in research_graph.astream(state):
-        for node_name, node_state in event.items():
-            yield node_name, node_state
-
-
 def run_research_streaming(query: str, llm_config: dict, agent_config: dict):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    async def run():
-        async for node_name, node_state in run_research_async(
-            query, llm_config, agent_config
-        ):
-            yield node_name, node_state
+    queue = asyncio.Queue()
 
-    async_gen = run()
+    def stream_callback(token):
+        queue.put_nowait({"type": "token", "content": token})
+
+    agent_config["stream_callback"] = stream_callback
+
+    async def run():
+        state = create_initial_state(query, llm_config, agent_config)
+        try:
+            async for event in research_graph.astream(state):
+                for node_name, node_state in event.items():
+                    await queue.put({"type": "node", "name": node_name, "state": node_state})
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Graph execution failed: {e}")
+        finally:
+            await queue.put({"type": "done"})
+
+    loop.create_task(run())
 
     try:
         while True:
-            try:
-                node_name, node_state = loop.run_until_complete(async_gen.__anext__())
-                yield node_name, node_state
-            except StopAsyncIteration:
+            msg = loop.run_until_complete(queue.get())
+            if msg["type"] == "done":
                 break
+            elif msg["type"] == "token":
+                yield "token", msg["content"]
+            elif msg["type"] == "node":
+                yield msg["name"], msg["state"]
     finally:
+        pending = asyncio.all_tasks(loop)
+        for task in pending:
+            task.cancel()
+        if pending:
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
         loop.close()
 
 
@@ -197,6 +213,31 @@ def main():
         st.divider()
 
         st.subheader("🔍 Research Settings")
+        
+        rag_mode = st.radio(
+            "RAG Mode",
+            options=["creative", "strict"],
+            format_func=lambda x: "🧠 Creative (Uses Internal Knowledge)" if x == "creative" else "🛡️ Strict (Only Uses Scraped Facts)",
+            help="Creative mode allows the AI to fill in gaps using its baseline knowledge. Strict mode forces it to rely exclusively on web search results."
+        )
+
+        search_provider = st.selectbox(
+            "Search Provider",
+            options=["tavily", "duckduckgo", "serper"],
+            index=0,
+            format_func=lambda x: {"duckduckgo": "DuckDuckGo (Free)", "tavily": "Tavily (AI-Optimized)", "serper": "Serper (Google Search)"}[x],
+            help="Tavily is highly recommended for reliable AI agent research."
+        )
+
+        if search_provider == "tavily":
+            tavily_key = st.text_input("Tavily API Key", type="password", value=os.getenv("TAVILY_API_KEY", ""), placeholder="tvly-...")
+            if tavily_key:
+                os.environ["TAVILY_API_KEY"] = tavily_key
+        elif search_provider == "serper":
+            serper_key = st.text_input("Serper API Key", type="password", value=os.getenv("SERPER_API_KEY", ""), placeholder="Your Serper key")
+            if serper_key:
+                os.environ["SERPER_API_KEY"] = serper_key
+
         max_sources = st.slider("Max Sources", 3, 10, 5)
         deep_research = st.checkbox("Deep Research", value=True)
 
@@ -245,6 +286,8 @@ def main():
             search_count = 0
             scrape_count = 0
             analyze_count = 0
+            shown_trace_count = 0
+            reasoning_buffer = ""
 
             for node_name, node_state in run_research_streaming(
                 prompt,
@@ -257,59 +300,80 @@ def main():
                 agent_config={
                     "deep_research": deep_research,
                     "max_sources": max_sources,
+                    "rag_mode": rag_mode,
+                    "search_provider": search_provider,
                     "streaming": True,
                     "temperature": 0.7,
                     "max_tokens": 4000,
                 },
             ):
+                
+                # Handle real-time token streaming
+                if node_name == "token":
+                    token = node_state
+                    if token.startswith("[REASONING]") and token.endswith("[/REASONING]"):
+                        reasoning_buffer += token[11:-12]
+                    else:
+                        if reasoning_buffer:
+                            research_container.markdown(f"💭 **Model Reasoning:**\n```text\n{reasoning_buffer.strip()}\n```")
+                            reasoning_buffer = ""
+                        full_answer += token
+                        answer_placeholder.markdown(full_answer + "▌")
+                    continue
+
+                # Stream reasoning traces live as they are generated by agents
+                if "reasoning_trace" in node_state:
+                    current_trace = node_state["reasoning_trace"]
+                    if len(current_trace) > shown_trace_count:
+                        for trace in current_trace[shown_trace_count:]:
+                            if trace.strip().startswith("🔗"):
+                                research_container.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;{trace}")
+                            else:
+                                research_container.markdown(f"🔹 *{trace}*")
+                        shown_trace_count = len(current_trace)
+
                 if node_name == "router":
                     next_step = node_state.get("next_step", "research")
                     if next_step == "direct":
-                        research_container.markdown("🎯 **Router:** Direct answer possible")
                         answer_placeholder.markdown("✍️ *Synthesizing direct answer...*")
                     else:
-                        research_container.markdown("🔍 **Router:** Research required")
                         answer_placeholder.markdown("📝 *Planning research strategy...*")
 
                 elif node_name == "planner" and "refined_query" in node_state:
-                    query = node_state.get("refined_query", "")
-                    research_container.markdown(f"📝 **Planning:** {query}")
                     answer_placeholder.markdown("🌍 *Searching the web...*")
 
                 elif node_name == "search" and "search_results" in node_state:
-                    results = node_state.get("search_results", [])
-                    search_count = len(results)
-                    research_container.markdown(
-                        f"🔍 **Search:** Found {search_count} results"
-                    )
-                    for r in results[:5]:
-                        title = r.get("title", "Unknown")[:50]
-                        url = r.get("url", "")
-                        research_container.markdown(f"   - {title}...")
-                        research_container.markdown(f"     🔗 {url}")
                     answer_placeholder.markdown("📄 *Scraping source contents...*")
 
                 elif node_name == "scrape" and "scraped_content" in node_state:
                     scraped = node_state.get("scraped_content", [])
                     scrape_count = len(scraped)
-                    research_container.markdown(
-                        f"📄 **Scraping:** Extracted {scrape_count} pages"
-                    )
                     answer_placeholder.markdown(f"🧠 *Parallel processing & analyzing {scrape_count} sources... (This takes a moment)*")
 
                 elif node_name == "analyzer" and "extracted_facts" in node_state:
                     facts = node_state.get("extracted_facts", [])
-                    analyze_count = len(facts)
-                    research_container.markdown(
-                        f"🧠 **Analyzing:** Extracted {analyze_count} facts"
-                    )
+                    
+                    if facts:
+                        research_container.markdown("**Top Extracted Facts (Pedigree):**")
+                        for f in facts[:5]:
+                            fact_text = f.get('fact', '').replace('\n', ' ')[:100]
+                            research_container.markdown(f"   - {fact_text}... *(Conf: {f.get('confidence', 0.0)})*")
+                            
                     answer_placeholder.markdown("✍️ *Synthesizing final answer...*")
 
-                elif node_name == "synthesize" and "final_answer" in node_state:
-                    full_answer = node_state.get("final_answer", "")
-                    citations = node_state.get("citations", [])
-                    reasoning = node_state.get("reasoning_trace", [])
-                    research_container.markdown("✅ **Complete!**")
+                elif node_name == "verifier":
+                    if node_state.get("status") == "pending_reflexion":
+                        full_answer = ""
+                        answer_placeholder.markdown("✍️ *Rewriting based on critique...*")
+                    elif node_state.get("status") == "complete":
+                        if reasoning_buffer:
+                            research_container.markdown(f"💭 **Model Reasoning:**\n```text\n{reasoning_buffer.strip()}\n```")
+                            reasoning_buffer = ""
+                            
+                        full_answer = node_state.get("final_answer", "")
+                        citations = node_state.get("citations", [])
+                        reasoning = node_state.get("reasoning_trace", [])
+                        research_container.markdown("✅ **Complete!**")
 
             answer_placeholder.markdown(full_answer)
 
@@ -321,13 +385,6 @@ def main():
                     sources_container.markdown(f"    🔗 {url}")
             else:
                 sources_container.markdown("*No sources*")
-
-            if reasoning:
-                research_container.markdown("### 📋 Full Trace")
-                for t in reasoning[-15:]:
-                    research_container.markdown(f"- {t}")
-            else:
-                research_container.markdown("*No reasoning trace*")
 
             st.session_state.current_answer = full_answer
             st.session_state.current_citations = citations

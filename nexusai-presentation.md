@@ -10,39 +10,39 @@ paginate: true
 :root {
   --color-foreground: #ffffff;
   --color-heading: #ffffff;
-  --color-accent: #ffd700;
-  --color-accent2: #ff6b9d;
-  --color-box-bg: rgba(255,255,255,0.1);
-  --font-default: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  --color-accent: #00e5ff;
+  --color-accent2: #7000ff;
+  --color-box-bg: rgba(255,255,255,0.08);
+  --font-default: 'Noto Sans JP', sans-serif;
   --font-code: 'Fira Code', monospace;
 }
 
 section {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
   color: var(--color-foreground);
   font-family: var(--font-default);
   font-weight: 400;
   box-sizing: border-box;
   position: relative;
-  line-height: 1.7;
+  line-height: 1.6;
   font-size: 20px;
   padding: 48px 56px;
 }
 
 section:nth-child(2n) {
-  background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 50%, #0a0a1a 100%);
 }
 
 section:nth-child(3n) {
-  background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #0a0a1a 0%, #16213e 100%);
 }
 
 section:nth-child(4n) {
-  background: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
 }
 
 section:nth-child(5n) {
-  background: linear-gradient(135deg, #533483 0%, #e94560 100%);
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -50,23 +50,23 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-heading);
   margin: 0;
   padding: 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 h1 {
   font-size: 52px;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 h2 {
   font-size: 38px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid rgba(255,255,255,0.2);
-  margin-bottom: 28px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(0,229,255,0.4);
+  margin-bottom: 24px;
 }
 
 h2::before {
-  content: '▸ ';
+  content: '⚡ ';
   color: var(--color-accent);
 }
 
@@ -82,7 +82,7 @@ ul, ol {
 }
 
 li {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 li::marker {
@@ -95,22 +95,22 @@ strong {
 }
 
 code {
-  background: rgba(255,255,255,0.15);
-  padding: 3px 8px;
+  background: rgba(255,255,255,0.12);
+  padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-code);
   font-size: 0.9em;
 }
 
 pre {
-  background: rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
   padding: 16px 20px;
   font-family: var(--font-code);
-  font-size: 15px;
+  font-size: 14px;
   overflow-x: auto;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 pre code {
@@ -122,37 +122,37 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 16px 0;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 th, td {
-  padding: 12px 16px;
+  padding: 10px 14px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.15);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 th {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
   color: var(--color-accent);
   font-weight: 600;
 }
 
 tr:hover {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.03);
 }
 
 footer {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   position: absolute;
   left: 56px;
   right: 56px;
-  bottom: 28px;
+  bottom: 24px;
   text-align: center;
 }
 
 section.lead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -161,93 +161,93 @@ section.lead {
 }
 
 section.lead h1 {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   text-align: center;
-  font-size: 56px;
+  font-size: 64px;
+  background: -webkit-linear-gradient(#00e5ff, #7000ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 section.lead p {
-  font-size: 22px;
+  font-size: 24px;
   color: var(--color-foreground);
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-section.lead h1::before {
-  content: '🔮 ';
+  opacity: 0.9;
 }
 
 .box {
   background: var(--color-box-bg);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(0,229,255,0.2);
   border-radius: 12px;
-  padding: 20px 24px;
-  margin: 16px 0;
+  padding: 18px 24px;
+  margin: 12px 0;
 }
 
 .box-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin: 16px 0;
+  gap: 12px;
+  margin: 12px 0;
 }
 
 .box-item {
   background: var(--color-box-bg);
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .box-item h4 {
   color: var(--color-accent);
   font-size: 18px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .flow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin: 20px 0;
+  gap: 10px;
+  margin: 16px 0;
   flex-wrap: wrap;
 }
 
 .flow-item {
-  background: rgba(255,255,255,0.1);
-  border: 2px solid var(--color-accent);
-  border-radius: 8px;
-  padding: 12px 20px;
+  background: rgba(0,229,255,0.1);
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  padding: 8px 16px;
   font-weight: 600;
-  text-align: center;
+  font-size: 16px;
 }
 
 .flow-arrow {
   color: var(--color-accent);
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .icon-badge {
   display: inline-block;
   background: var(--color-accent);
-  color: #1a1a2e;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 14px;
+  color: #0a0a1a;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 700;
-  margin-right: 8px;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 </style>
 
 <!-- _class: lead -->
 
-# NexusAI
+# NextQuestAI
 
-## Deep Research Assistant
+## Deep Research Multi-Agent Framework
 
-Perplexity Clone with Multi-Agent Orchestration
+Intelligent Orchestration powered by NVIDIA NIM & LangGraph
 
-Built with LangGraph • Gradio • HuggingFace Spaces
+Built with Streamlit • Tavily • HuggingFace Spaces
 
 ---
 
@@ -256,41 +256,39 @@ Built with LangGraph • Gradio • HuggingFace Spaces
 <div class="flow">
   <span class="flow-item">🏗️ Architecture</span>
   <span class="flow-arrow">→</span>
-  <span class="flow-item">🤖 Agents</span>
+  <span class="flow-item">🤖 Multi-Agent</span>
   <span class="flow-arrow">→</span>
   <span class="flow-item">🔧 Tech Stack</span>
   <span class="flow-arrow">→</span>
-  <span class="flow-item">💻 Components</span>
+  <span class="flow-item">🧩 Components</span>
   <span class="flow-arrow">→</span>
-  <span class="flow-item">🎨 UI Design</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">🚀 Deploy</span>
+  <span class="flow-item">🚀 Deployment</span>
 </div>
 
 ---
 
-## What is NexusAI?
+## What is NextQuestAI?
 
 <div class="box">
-<p><strong>Agentic RAG-powered Q&A System</strong> — A Perplexity-style deep research assistant that searches the web, retrieves relevant information, reasons over results, and provides citation-backed answers.</p>
+<p><strong>Advanced Agentic Research Engine</strong> — A high-performance framework that transforms complex queries into comprehensive, fact-verified research reports using a swarm of specialized AI agents.</p>
 </div>
 
 <div class="box-grid">
   <div class="box-item">
-    <h4>🔍 Multi-Agent Pipeline</h4>
-    <p>5 specialized agents working together: Planner → Search → Scrape → Analyze → Synthesize</p>
+    <h4>🚦 Intelligent Routing</h4>
+    <p>Automatically detects if a query needs live research or a direct answer.</p>
   </div>
   <div class="box-item">
-    <h4>📚 Citation-Backed</h4>
-    <p>Every answer includes source attribution with clickable links for verification</p>
+    <h4>🛡️ Fact Verification</h4>
+    <p>Dedicated Verifier agent cross-checks every claim against source data.</p>
   </div>
   <div class="box-item">
-    <h4>⚡ Real-Time Streaming</h4>
-    <p>Token-by-token response generation for immediate feedback</p>
+    <h4>🔋 NVIDIA NIM Powered</h4>
+    <p>Optimized for low-latency inference using NVIDIA's enterprise AI stack.</p>
   </div>
   <div class="box-item">
-    <h4>☁️ HF Spaces Ready</h4>
-    <p>One-click deployment to HuggingFace Spaces with Docker support</p>
+    <h4>📊 Semantic Ranking</h4>
+    <p>Filters noise to extract only the highest-quality, most relevant facts.</p>
   </div>
 </div>
 
@@ -298,90 +296,49 @@ Built with LangGraph • Gradio • HuggingFace Spaces
 
 ## System Architecture
 
-<h3>High-Level Overview</h3>
+<h3>Multi-Agent Workflow</h3>
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Gradio UI (HuggingFace Spaces)               │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │ Chat Input  │  │ Search Mode  │  │  Source Citations      │ │
-│  └─────────────┘  └──────────────┘  └────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   LangGraph Orchestrator                        │
-│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐ │
-│  │Planner  │───▶│ Search   │───▶│ Scraper  │───▶│Synthesizer│ │
-│  │ Agent   │    │ Agent    │    │ Agent    │    │  Agent    │ │
-│  └──────────┘    └──────────┘    └──────────┘    └──────────┘ │
-│                                                             │
-│                   ┌──────────┐                              │
-│                   │ Analyzer │                              │
-│                   │  Agent   │                              │
-│                   └──────────┘                              │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-          ┌───────────────────┼───────────────────┐
-          ▼                   ▼                   ▼
-    ┌──────────┐       ┌──────────┐       ┌──────────────┐
-    │  Web     │       │ Content  │       │     LLM      │
-    │  Search  │       │ Fetchers │       │   Reasoning   │
-    │ Tavily/  │       │ Trafilatura│    │ GPT-4o/      │
-    │ DuckDuckGo│     │ BeautifulSoup│   │ Claude/      │
-    │ Serper   │       │             │    │ Ollama       │
-    └──────────┘       └──────────┘       └──────────────┘
+```mermaid
+graph TD
+    User[User Query] --> Router{Router}
+    Router -- Direct --> Synthesizer
+    Router -- Research --> Planner
+    Planner --> Search[Web Search]
+    Search --> Scraper[Content Scraper]
+    Scraper --> Analyzer[Fact Extractor]
+    Analyzer --> Ranker[Semantic Filter]
+    Ranker --> Synthesizer[Answer Generator]
+    Synthesizer --> Verifier[Fact Checker]
+    Verifier --> Final[Final Verified Report]
 ```
 
 ---
 
-## Multi-Agent Pipeline
+## The Research Pipeline
 
-<h3>5 Specialized Agents Working in Sequence</h3>
+<h3>8 Specialized Agents in Coordination</h3>
 
 <div class="box-grid">
   <div class="box-item">
-    <h4>1️⃣ Planner Agent</h4>
-    <p>Decomposes query, creates research plan, determines search strategy</p>
+    <h4>1️⃣ Router</h4>
+    <p>Determines path: Direct Answer vs. Deep Research</p>
   </div>
   <div class="box-item">
-    <h4>2️⃣ Search Agent</h4>
-    <p>Executes parallel web searches, filters results by relevance</p>
+    <h4>2️⃣ Planner</h4>
+    <p>Decomposes query into a structured research plan</p>
   </div>
   <div class="box-item">
-    <h4>3️⃣ Scraper Agent</h4>
-    <p>Fetches and extracts content from top URLs</p>
+    <h4>3️⃣ Search & Scrape</h4>
+    <p>Parallel web search and content extraction</p>
   </div>
   <div class="box-item">
-    <h4>4️⃣ Analyzer Agent</h4>
-    <p>Extracts key info, facts, statistics from content</p>
-  </div>
-  <div class="box-item">
-    <h4>5️⃣ Synthesizer Agent</h4>
-    <p>Combines findings, generates answer with citations</p>
+    <h4>4️⃣ Ranker & Verifier</h4>
+    <p>Filters facts by relevance and validates claims</p>
   </div>
 </div>
 
----
-
-## Agent State Management
-
-<h3>LangGraph TypedDict State</h3>
-
-```python
-class AgentState(TypedDict):
-    original_query: str              # User's question
-    search_results: List[SearchResult]  # Web search hits
-    scraped_content: List[ScrapedContent]  # Fetched pages
-    extracted_facts: List[ExtractedFact]  # Key findings
-    final_answer: str              # Generated response
-    citations: List[Citation]     # Source references
-    reasoning_trace: List[str]    # Thinking process
-    error: Optional[str]           # Error tracking
-```
-
 <div class="box">
-<p><span class="icon-badge">KEY</span>State persists through the entire pipeline, enabling error recovery and retry logic at each stage.</p>
+<p><span class="icon-badge">CORE</span>The <strong>Synthesizer</strong> assembles the final report with full source attribution and citations.</p>
 </div>
 
 ---
@@ -390,360 +347,175 @@ class AgentState(TypedDict):
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Orchestration** | <code>LangGraph 0.5.x</code> | Multi-agent pipeline |
-| **Multi-Agent** | <code>CrewAI 0.80.x</code> | Agent coordination (optional) |
-| **LLM Client** | <code>OpenAI SDK</code> | GPT-4o / Claude / Ollama |
-| **Web Search** | <code>Tavily, DuckDuckGo</code> | Multi-provider search |
-| **HTML Parsing** | <code>Trafilatura</code> | Content extraction |
-| **UI Framework** | <code>Gradio 5.x</code> | Web interface |
-| **Async** | <code>httpx, asyncio</code> | Parallel operations |
-| **Validation** | <code>Pydantic 2.x</code> | Type-safe data |
-| **Database** | <code>SQLite</code> | Chat history |
-| **Deployment** | <code>HuggingFace Spaces</code> | Cloud hosting |
+| **Orchestration** | <code>LangGraph 0.2+</code> | State-machine based multi-agent flow |
+| **Inference** | <code>NVIDIA NIM</code> | High-performance LLM execution |
+| **UI Framework** | <code>Streamlit 1.32+</code> | Interactive research dashboard |
+| **Web Search** | <code>Tavily API</code> | AI-optimized search results |
+| **Fact Ranking** | <code>Semantic Similarity</code> | High-precision data filtering |
+| **Database** | <code>SQLite</code> | Persistent research history |
+| **Observability** | <code>Custom Trace</code> | Real-time agent status tracking |
+| **Deployment** | <code>HF Spaces</code> | Cloud-native hosting |
 
 ---
 
-## Search Providers
+## LLM Providers: NVIDIA NIM Focus
 
-<h3>Multi-Provider with Automatic Fallback</h3>
-
-<div class="box-grid">
-  <div class="box-item">
-    <h4>🔴 Tavily Search</h4>
-    <p>Primary search with semantic relevance scoring</p>
-    <code>TAVILY_API_KEY</code>
-  </div>
-  <div class="box-item">
-    <h4>🟢 DuckDuckGo</h4>
-    <p>Free fallback, no API key required</p>
-    <code>SEARCH_PROVIDER=duckduckgo</code>
-  </div>
-  <div class="box-item">
-    <h4>🔵 Serper Search</h4>
-    <p>Google results alternative</p>
-    <code>SERPER_API_KEY</code>
-  </div>
-</div>
-
-<h3>Fallback Chain</h3>
-
-<div class="flow">
-  <span class="flow-item">Tavily</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">Serper</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">DuckDuckGo</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">Error Message</span>
-</div>
-
----
-
-## Content Extraction
-
-<h3>Multi-Tool Fetching Pipeline</h3>
-
-```
-URL Input
-    │
-    ▼
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│ Trafilatura │────▶│ BeautifulSoup│───▶│ Clean Text │
-│ (Primary)  │     │  (HTML Parse)│    │  Output     │
-└─────────────┘     └─────────────┘     └─────────────┘
-    │                   │                    │
-    └─────── OR ────────┘
-              │
-              ▼
-    ┌─────────────────┐
-    │ Readability-lxml │
-    │ (Article Extract)│
-    └─────────────────┘
-```
+<h3>Enterprise-Grade Inference</h3>
 
 <div class="box">
-<p><span class="icon-badge">NOTE</span>Each tool is tried sequentially. On failure, the next tool attempts extraction. Failed sources are skipped without halting the pipeline.</p>
+<p>NextQuestAI is optimized for <strong>NVIDIA NIM</strong>, providing lightning-fast response times and support for cutting-edge models like Llama-3-70B and Nemotron.</p>
 </div>
-
----
-
-## LLM Providers
-
-<h3>Multi-Provider Support</h3>
 
 <div class="box-grid">
   <div class="box-item">
-    <h4>🤖 OpenAI GPT-4o</h4>
-    <p>Primary reasoning model, highest quality</p>
-    <code>LLM_PROVIDER=openai<br>LLM_MODEL=gpt-4o</code>
+    <h4>🟢 Primary: NVIDIA NIM</h4>
+    <p>Low-latency, high-throughput inference for core agents.</p>
   </div>
   <div class="box-item">
-    <h4>🧠 Anthropic Claude</h4>
-    <p>Fallbback option, strong reasoning</p>
-    <code>LLM_PROVIDER=anthropic<br>LLM_MODEL=claude-3-5-sonnet</code>
+    <h4>🟡 Fallback: HuggingFace</h4>
+    <p>Reliable secondary provider for lighter tasks.</p>
   </div>
   <div class="box-item">
-    <h4>🏠 Ollama (Local)</h4>
-    <p>Free local deployment, privacy-first</p>
-    <code>LLM_PROVIDER=ollama<br>LLM_MODEL=llama3.2</code>
+    <h4>🔵 Flexible: OpenRouter</h4>
+    <p>Access to any model (Claude, GPT, Gemini) via unified API.</p>
   </div>
 </div>
 
 ---
 
-## Gradio UI Design
+## Intelligent Routing Logic
 
-<h3>Interface Layout</h3>
+<h3>Direct vs. Research</h3>
+
+<div class="box">
+<p>The <strong>Router Agent</strong> analyzes the complexity and "freshness" requirements of a query to optimize resource usage.</p>
+</div>
+
+<div class="box-grid">
+  <div class="box-item">
+    <h4>🚀 Direct Path</h4>
+    <p>Used for general knowledge or simple questions. Skips search/scrape to provide instant answers.</p>
+  </div>
+  <div class="box-item">
+    <h4>🔍 Research Path</h4>
+    <p>Used for complex, multi-faceted, or time-sensitive queries requiring live web data.</p>
+  </div>
+</div>
+
+---
+
+## Streamlit UI Design
+
+<h3>Interactive Dashboard</h3>
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
+│  [ Sidebar: Settings, Model Select, API Key (BYOK) ]         │
+│                                                              │
+│  🚀 NextQuestAI Dashboard                                     │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │           🔮 NexusAI                                     │ │
-│  │    "Deep research, clear answers"                       │ │
+│  │  🔍 Ask your research question...                       │ │
+│  │  [ Generate Report ]                                    │ │
 │  └────────────────────────────────────────────────────────┘ │
 │                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  [User Query Input - Textbox]                          │ │
-│  │                                                        │ │
-│  │  ☑ Deep Research    ☐ Quick Search    [Search Button]  │ │
-│  └────────────────────────────────────────────────────────┘ │
+│  [ Live Status: Agent 1 -> Agent 2 -> Agent 3... ]          │
 │                                                              │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │                    ANSWER                               │ │
+│  │                 RESEARCH REPORT                        │ │
 │  │  ────────────────────────────────────────────────────  │ │
-│  │  [Markdown response with citations]                    │ │
+│  │  [ Markdown Content with Citations ]                   │ │
 │  │                                                        │ │
-│  │  📚 Sources: [Clickable citation cards]                │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  [Thinking Process - Expandable/Collapsible]          │ │
-│  └────────────────────────────────────────────────────────┘ │
-│                                                              │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  Related Questions: [Clickable suggestions]            │ │
+│  │  📚 Sources: [Clickable Link List]                     │ │
 │  └────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## UI Features
+## Key UI Features
 
 <div class="box-grid">
   <div class="box-item">
-    <h4>⚡ Streaming Responses</h4>
-    <p>Token-by-token generation for immediate feedback</p>
+    <h4>🔑 BYOK Support</h4>
+    <p>Enter your own API keys for private, unlimited research.</p>
   </div>
   <div class="box-item">
-    <h4>📚 Source Citations</h4>
-    <p>Clickable citation cards with link verification</p>
+    <h4>📜 History Sidebar</h4>
+    <p>Access and resume previous research sessions instantly.</p>
   </div>
   <div class="box-item">
-    <h4>🧠 Thinking Visibility</h4>
-    <p>Expandable reasoning trace shows agent logic</p>
+    <h4>📡 Live Status</h4>
+    <p>Real-time visual feedback on which agent is currently working.</p>
   </div>
   <div class="box-item">
-    <h4>🌙 Theme Toggle</h4>
-    <p>Dark/light mode for comfortable viewing</p>
-  </div>
-  <div class="box-item">
-    <h4>📱 Mobile Responsive</h4>
-    <p>Optimized for mobile and tablet devices</p>
-  </div>
-  <div class="box-item">
-    <h4>💡 Related Questions</h4>
-    <p>AI-generated follow-up suggestions</p>
+    <h4>🔗 Auto-Citations</h4>
+    <p>Every claim is automatically linked to its verified web source.</p>
   </div>
 </div>
 
 ---
 
-## Deployment Options
+## Deployment & Scalability
 
-<h3>1. HuggingFace Spaces (Cloud)</h3>
+<h3>Cloud-Native Ready</h3>
 
-<div class="box">
-<pre>git add .
-git commit -m "Initial commit"
-git push
-# Creates Space automatically via spaces.yaml</pre>
+<div class="box-item">
+  <h4>1. HuggingFace Spaces</h4>
+  <p>Optimized for Streamlit SDK. Zero-config deployment via <code>spaces.yaml</code>.</p>
 </div>
 
-<h3>2. Docker (Self-Hosted)</h3>
-
-<div class="box-grid">
-  <div class="box-item">
-    <h4>Option A: With docker-compose</h4>
-    <pre>docker-compose up --build</pre>
-    <p>Includes Ollama container</p>
-  </div>
-  <div class="box-item">
-    <h4>Option B: Standalone</h4>
-    <pre>docker build -t nexusai .
-docker run -p 7860:7860 \
-  -e OLLAMA_BASE_URL=http://host.docker.internal:11434/v1 \
-  nexusai</pre>
-  </div>
+<div class="box-item">
+  <h4>2. Dockerized Environment</h4>
+  <p>Self-host anywhere with the included <code>Dockerfile</code> and <code>docker-compose.yml</code>.</p>
 </div>
 
----
-
-## HuggingFace Spaces Config
-
-<h3>spaces.yaml</h3>
-
-<pre>title: NexusAI
-emoji: 🔮
-colorFrom: blue
-colorTo: purple
-sdk: gradio
-sdk_version: 5.0.0
-app_file: app.py
-pinned: false</pre>
-
-<div class="box">
-<p><span class="icon-badge">SECRETS</span>Add in HF Space settings: <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code>, <code>TAVILY_API_KEY</code></p>
-</div>
-
----
-
-## Environment Configuration
-
-<h3>.env File Setup</h3>
-
-<pre># LLM Provider Selection
-LLM_PROVIDER=ollama          # or openai / anthropic
-LLM_MODEL=llama3.2           # or gpt-4o / claude-3-5-sonnet
-OLLAMA_BASE_URL=http://localhost:11434/v1
-
-# Search Provider
-SEARCH_PROVIDER=duckduckgo   # or tavily / serper
-
-# API Keys (for cloud providers)
-OPENAI_API_KEY=sk-your-key-here
-TAVILY_API_KEY=tvly-your-key-here
-SERPER_API_KEY=serpapi-your-key-here
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-
-# Runtime Options
-MAX_SOURCES=5
-DEEP_RESEARCH=true
-STREAMING=true</pre>
-
----
-
-## Error Handling Strategy
-
-| Error Type | Handling |
-|------------|----------|
-| **No API Key** | Show setup instructions in UI |
-| **Search Failed** | Fallback to next search provider |
-| **Fetch Failed** | Skip source, continue with others |
-| **LLM Failed** | Retry with exponential backoff (3 attempts) |
-| **Rate Limited** | Queue requests, show progress indicator |
-
-<div class="box">
-<h4>🔄 Resilience Features</h4>
-<ul>
-<li>Timeout handling (30s default)</li>
-<li>Connection pooling for HTTP reuse</li>
-<li>Graceful degradation on partial failures</li>
-<li>Detailed error logging for debugging</li>
-</ul>
-</div>
-
----
-
-## Performance Optimizations
-
-<div class="box-grid">
-  <div class="box-item">
-    <h4>💾 Caching Layer</h4>
-    <p>Search results cached for 1 hour to avoid redundant API calls</p>
-  </div>
-  <div class="box-item">
-    <h4>⚡ Async Pipeline</h4>
-    <p>Parallel search + scraping reduces latency by 60%</p>
-  </div>
-  <div class="box-item">
-    <h4>📡 Streaming</h4>
-    <p>Token-by-token LLM output starts faster</p>
-  </div>
-  <div class="box-item">
-    <h4>🔄 Connection Pooling</h4>
-    <p>Reuse HTTP connections, reduce overhead</p>
-  </div>
-</div>
-
-<div class="box">
-<h4>📊 Performance Metrics</h4>
-<ul>
-<li>Search: ~2-3 seconds for 5 sources</li>
-<li>Scrape: ~5-10 seconds for content extraction</li>
-<li>LLM: Streaming starts in ~1 second</li>
-<li>Total: Typical query completes in 15-30 seconds</li>
-</ul>
-</div>
+<pre># Deployment Command
+git push origin main  # Triggers auto-deploy to HF Space</pre>
 
 ---
 
 ## Project Structure
 
 <pre>
-nexusai/
-├── app.py              # Main Gradio application
-├── requirements.txt    # Python dependencies
-├── .env.example        # Environment template
-├── spaces.yaml         # HuggingFace Spaces config
-├── docker-compose.yml  # Docker orchestration
-├── Dockerfile          # Container build
-├── SPEC.md             # Technical specification
-├── README.md           # Documentation
-└── src/
-    ├── __init__.py
-    ├── config.py       # Configuration management
-    ├── models.py       # AgentState, Pydantic models
-    ├── search.py       # Multi-provider search (Tavily/DuckDuckGo/Serper)
-    ├── scraper.py      # Content extraction (Trafilatura/BeautifulSoup)
-    ├── llm.py          # LLM client (OpenAI/Anthropic/Ollama)
-    ├── agents.py      # Agent definitions (Planner/Search/Scraper/Analyzer/Synthesizer)
-    ├── workflow.py     # LangGraph pipeline orchestration
-    ├── prompts.py      # LLM prompt templates
-    ├── database.py     # SQLite chat history
-    ├── resilience.py   # Retry logic, circuit breakers
-    ├── ui.py           # UI components and styling
-    └── test_workflow.py
+NextQuestAI/
+├── app.py              # Streamlit Entry Point
+├── requirements.txt    # Framework dependencies
+├── .env                # Environment configuration
+├── src/
+│   ├── agents.py       # Multi-agent definitions
+│   ├── workflow.py     # LangGraph orchestration
+│   ├── llm.py          # NVIDIA NIM & fallback clients
+│   ├── search.py       # Tavily & DDG integration
+│   ├── scraper.py      # Content extraction logic
+│   ├── database.py     # SQLite history management
+│   ├── observability.py # Real-time trace tracking
+│   ├── performance.py   # Latency & token optimization
+│   └── prompts.py      # Agent personas & instructions
+└── tests/              # Validation suite
 </pre>
 
 ---
 
-## Quick Start Guide
+## Performance & Optimization
 
-<h3>Local Development</h3>
-
-<div class="flow">
-  <span class="flow-item">1. Install</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">2. Ollama</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">3. Run</span>
-  <span class="flow-arrow">→</span>
-  <span class="flow-item">4. Use</span>
+<div class="box-grid">
+  <div class="box-item">
+    <h4>⚡ Parallel Processing</h4>
+    <p>Multi-threaded scraping and search reduces latency by 50%.</p>
+  </div>
+  <div class="box-item">
+    <h4>💾 Smart Caching</h4>
+    <p>Redundant web requests are cached to save API credits and time.</p>
+  </div>
+  <div class="box-item">
+    <h4>📉 Token Efficiency</h4>
+    <p>Semantic filtering ensures agents only process relevant context.</p>
+  </div>
+  <div class="box-item">
+    <h4>🔄 Self-Correction</h4>
+    <p>Agents can loop back if verification fails, ensuring accuracy.</p>
+  </div>
 </div>
-
-<pre># 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Start Ollama server
-ollama pull llama3.2    # Download model
-ollama serve            # Start server
-
-# 3. Run application
-python app.py
-
-# 4. Open browser
-# Visit http://localhost:7860</pre>
 
 ---
 
@@ -751,28 +523,20 @@ python app.py
 
 <div class="box-grid">
   <div class="box-item">
-    <h4>🎯 What is NexusAI?</h4>
-    <p>Perplexity-style deep research assistant</p>
+    <h4>🎯 Purpose</h4>
+    <p>Next-gen research orchestration for enterprise AI.</p>
   </div>
   <div class="box-item">
-    <h4>🤖 Multi-Agent</h4>
-    <p>Planner → Search → Scrape → Analyze → Synthesize</p>
+    <h4>🤖 Swarm Intelligence</h4>
+    <p>8+ specialized agents working in harmony.</p>
   </div>
   <div class="box-item">
-    <h4>🔄 Multi-Provider</h4>
-    <p>OpenAI, Anthropic, Ollama + Tavily/DuckDuckGo/Serper</p>
+    <h4>🔋 High Performance</h4>
+    <p>Built for NVIDIA NIM and real-time responsiveness.</p>
   </div>
   <div class="box-item">
-    <h4>📦 Production-Ready</h4>
-    <p>Streaming, caching, error handling included</p>
-  </div>
-  <div class="box-item">
-    <h4>🚀 Easy Deploy</h4>
-    <p>HuggingFace Spaces or Docker in minutes</p>
-  </div>
-  <div class="box-item">
-    <h4>🔓 Open Source</h4>
-    <p>MIT License, contributions welcome</p>
+    <h4>🚀 Production-Ready</h4>
+    <p>Built-in observability, history, and verification.</p>
   </div>
 </div>
 
@@ -782,11 +546,10 @@ python app.py
 
 # Thank You
 
-## 🔮 NexusAI
+## 🚀 NextQuestAI
 
-**Deep Research, Clear Answers**
+**Empowering Intelligence through Agentic Research**
 
 Questions? Feedback? Contributions?
 
-🔗 https://github.com/your-repo/nexusai
-
+🔗 https://github.com/ajeetkbhardwaj/NextQuestAI

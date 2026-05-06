@@ -41,7 +41,11 @@ class SearchProvider(ABC):
 
 class TavilySearch(SearchProvider):
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("TAVILY_API_KEY")
+        self._api_key = api_key
+
+    @property
+    def api_key(self):
+        return self._api_key or os.getenv("TAVILY_API_KEY")
 
     async def search(self, query: str, max_results: int = DEFAULT_MAX_RESULTS) -> List[SearchResult]:
         if not self.api_key:
@@ -136,7 +140,11 @@ class DuckDuckGoSearch(SearchProvider):
 
 class SerperSearch(SearchProvider):
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("SERPER_API_KEY")
+        self._api_key = api_key
+
+    @property
+    def api_key(self):
+        return self._api_key or os.getenv("SERPER_API_KEY")
 
     async def search(self, query: str, max_results: int = DEFAULT_MAX_RESULTS) -> List[SearchResult]:
         if not self.api_key:

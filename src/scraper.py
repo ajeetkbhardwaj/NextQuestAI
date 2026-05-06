@@ -4,7 +4,8 @@ import logging
 from typing import List, Optional, Any
 import json
 from datetime import datetime, timezone
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import re
 
 import httpx
 import trafilatura
@@ -18,7 +19,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_SCRAPE_TIMEOUT = 30.0
+DEFAULT_SCRAPE_TIMEOUT = 10.0
 
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -40,6 +41,38 @@ class ScrapedContent:
     author: Optional[str]
     published_date: Optional[str]
     fetched_at: str
+    chunks: List[str] = field(default_factory=list)
+
+def semantic_chunk_text(text: str, max_chunk_size: int = 1500) -> List[str]:
+    """Mimics LlamaIndex's SentenceSplitter for dynamic semantic chunking."""
+    paragraphs = re.split(r'\n\n+', text)
+    chunks = []
+    current_chunk = ""
+
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            continue
+
+        if len(para) > max_chunk_size:
+            sentences = re.split(r'(?<=[.!?]) +', para)
+            for sentence in sentences:
+                if len(current_chunk) + len(sentence) > max_chunk_size and current_chunk:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = sentence
+                else:
+                    current_chunk += " " + sentence if current_chunk else sentence
+        else:
+            if len(current_chunk) + len(para) > max_chunk_size and current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = para
+            else:
+                current_chunk += "\n\n" + para if current_chunk else para
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    return chunks
 
 
 class ContentScraper:
@@ -98,6 +131,11 @@ class ContentScraper:
                 client = self._create_client()
                 use_temp_client = True
         try:
+            if url.lower().endswith(".pdf"):
+                logger.info(f"[SCRAPE] PDF detected. Routing directly to Jina Reader for {url}")
+                fallback = await self._jina_fallback(url, client)
+                return fallback
+
             response = await client.get(url)
             response.raise_for_status()
             html = response.text
@@ -132,6 +170,8 @@ class ContentScraper:
                 return None
 
             excerpt = content[:300] + "..." if len(content) > 300 else content
+            
+            chunks = semantic_chunk_text(content)
 
             return ScrapedContent(
                 url=url,
@@ -141,22 +181,17 @@ class ContentScraper:
                 author=data.get("author"),
                 published_date=data.get("date"),
                 fetched_at=datetime.now(timezone.utc).isoformat(),
+                chunks=chunks,
             )
 
         except Exception as e:
             status_code = getattr(getattr(e, "response", None), "status_code", None)
             
             if status_code:
-                if status_code in (401, 403, 406, 429, 503):
-                    logger.warning(f"[SCRAPE] HTTP {status_code} for {url}. Trying Jina Reader fallback...")
-                    fallback = await self._jina_fallback(url, client)
-                    if fallback:
-                        return fallback
-                logger.warning(f"[SCRAPE] HTTP error {status_code} for {url}")
-                return None
+                logger.warning(f"[SCRAPE] HTTP {status_code} error for {url}. Trying Jina Reader fallback...")
+            else:
+                logger.warning(f"[SCRAPE] Request error for {url}: {e}. Trying Jina Reader fallback...")
 
-            logger.error(f"[SCRAPE] Request error for {url}: {e}")
-            logger.warning(f"[SCRAPE] Connection failed. Trying Jina Reader fallback...")
             fallback = await self._jina_fallback(url, client)
             if fallback:
                 return fallback
@@ -186,6 +221,7 @@ class ContentScraper:
                         title = line.replace('Title: ', '').strip()
                         break
                 excerpt = content[:300] + "..." if len(content) > 300 else content
+                chunks = semantic_chunk_text(content)
                 return ScrapedContent(
                     url=url,
                     title=title,
@@ -194,6 +230,7 @@ class ContentScraper:
                     author=None,
                     published_date=None,
                     fetched_at=datetime.now(timezone.utc).isoformat(),
+                    chunks=chunks,
                 )
         except Exception as fallback_e:
             status_code = getattr(getattr(fallback_e, "response", None), "status_code", None)
@@ -219,7 +256,7 @@ class ContentScraper:
     async def _fallback_extract(self, html: str) -> str:
         try:
             soup = BeautifulSoup(html, "lxml")
-            for script in soup(["script", "style", "nav", "footer", "header"]):
+            for script in soup(["script", "style", "nav", "footer", "header", "aside", "form", "button", "noscript"]):
                 script.decompose()
             text = soup.get_text(separator=" ")
             import re
@@ -230,7 +267,7 @@ class ContentScraper:
             return ""
 
     async def fetch_multiple(
-        self, urls: List[str], max_concurrent: int = 5
+        self, urls: List[str], max_concurrent: int = 5, min_results: Optional[int] = None
     ) -> List[ScrapedContent]:
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -245,10 +282,25 @@ class ContentScraper:
                 async with semaphore:
                     return await self.fetch(url, client=client)
 
-            tasks = [fetch_with_limit(url) for url in urls]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = [asyncio.create_task(fetch_with_limit(url)) for url in urls]
+            pending = set(tasks)
+            valid_results = []
+            
+            target_results = min_results if min_results is not None else len(urls)
 
-            valid_results = [r for r in results if isinstance(r, ScrapedContent) and r.content]
+            while pending and len(valid_results) < target_results:
+                done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+                for task in done:
+                    try:
+                        result = task.result()
+                        if isinstance(result, ScrapedContent) and result.content:
+                            valid_results.append(result)
+                    except Exception as e:
+                        logger.debug(f"[SCRAPE] Task failed: {e}")
+
+            for task in pending:
+                task.cancel()
+
             logger.info(f"[SCRAPE] Successfully scraped {len(valid_results)}/{len(urls)} URLs")
             return valid_results
         finally:

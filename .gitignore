@@ -58,3 +58,12 @@ IMPLEMENTATION_REPORT.md
 spaces.yaml
 nexusai_history.db
 *.db
+report.md
+SPEC.md
+DEPLOY.md
+Hi.md
+README.md
+test.py
+test.sh
+
+.cache/

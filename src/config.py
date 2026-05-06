@@ -38,6 +38,7 @@ class PerformanceConfig(BaseModel):
 class AgentConfig(BaseModel):
     deep_research: bool = True
     max_sources: int = Field(default=5, ge=1, le=20)
+    rag_mode: Literal["creative", "strict"] = "creative"
     streaming: bool = True
     citation_style: Literal["numbered", "apa", "mla"] = "numbered"
     timeout: int = Field(default=120, ge=30, le=300)
