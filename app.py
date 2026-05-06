@@ -145,12 +145,12 @@ def get_dynamic_models(provider: str, api_key: str, base_url: str) -> List[str]:
 
 def main():
     st.set_page_config(
-        page_title="QuestNextAI - Deep Research Assistant",
+        page_title="NextQuestAI - Deep Research Assistant",
         page_icon="🔮",
         layout="wide",
     )
 
-    st.title("QuestNextAI")
+    st.title("NextQuestAI")
     st.markdown("*Multi-Agent Research Assistant powered by LangGraph*")
 
     if "messages" not in st.session_state:
