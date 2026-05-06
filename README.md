@@ -87,16 +87,36 @@ The app handles API keys in the following order:
 
 ```mermaid
 graph TD
-    User[User Query] --> Router{Router}
-    Router -- Direct --> Synthesizer
-    Router -- Research --> Planner
-    Planner --> Search[Web Search]
-    Search --> Scraper[Content Scraper]
-    Scraper --> Analyzer[Fact Extractor]
-    Analyzer --> Ranker[Semantic Filter]
-    Ranker --> Synthesizer[Answer Generator]
-    Synthesizer --> Verifier[Fact Checker]
-    Verifier --> Final[Final Verified Report]
+    User([User Query]) --> Router{Router Agent}
+    
+    %% Router routing
+    Router -- "Direct/Clarify\n(Skip Research)" --> Synthesizer[Synthesizer Agent]
+    Router -- "Research" --> Planner[Planner Agent]
+    
+    %% Planner & Search
+    Planner --> Search[Search Agent]
+    
+    %% Search Conditional Edges
+    Search -- "Error / No Results" --> Synthesizer
+    Search -- "Valid Results" --> Scraper[Scraper Agent]
+    
+    %% Scraper Conditional Edges
+    Scraper -- "Error / No Content" --> Synthesizer
+    Scraper -- "Valid Content" --> Analyzer[Analyzer Agent]
+    
+    %% Analyzer Conditional Edges & Retry Loop
+    Analyzer -- "Insufficient Facts\n(Retry Round 0)" --> Search
+    Analyzer -- "Sufficient Facts" --> Ranker[Ranker Agent]
+    
+    %% Ranker & Synthesizer
+    Ranker --> Synthesizer
+    
+    %% Synthesizer & Verifier
+    Synthesizer --> Verifier[Verifier Agent]
+    
+    %% Verifier Reflexion Loop
+    Verifier -- "Hallucination/Critique\n(Reflexion Loop < 3)" --> Synthesizer
+    Verifier -- "Verified Accurate" --> Final([Final Report])
 ```
 
 ---
